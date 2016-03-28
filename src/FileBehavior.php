@@ -4,6 +4,7 @@ namespace paulzi\fileBehavior;
 use Yii;
 use yii\base\Behavior;
 use yii\db\BaseActiveRecord;
+use yii\helpers\FileHelper;
 
 /**
  * @property \yii\db\BaseActiveRecord $owner
