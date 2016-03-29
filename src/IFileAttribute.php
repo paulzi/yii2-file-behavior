@@ -17,7 +17,7 @@ interface IFileAttribute
     public function initValue($value);
 
     /**
-     * @param string $value
+     * @param mixed $value
      */
     public function setValue($value);
 

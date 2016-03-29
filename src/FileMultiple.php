@@ -2,7 +2,6 @@
 namespace paulzi\fileBehavior;
 
 use Yii;
-use yii\base\NotSupportedException;
 use yii\helpers\Json;
 
 class FileMultiple extends FileCollection implements IFileAttribute
@@ -41,12 +40,7 @@ class FileMultiple extends FileCollection implements IFileAttribute
         $this->data = [];
         $value = $this->decode($value);
         foreach ($value as $itemValue) {
-            $options = is_string($this->item) ? ['class' => $this->item] : $this->item;
-            $options = array_merge([
-                'fileUrl'  => $this->fileUrl,
-                'filePath' => $this->filePath,
-            ], $options);
-            $file = Yii::createObject($options);
+            $file = $this->createFile();
             $file->initValue($itemValue);
             $this->data[] = $file;
         }
@@ -54,7 +48,6 @@ class FileMultiple extends FileCollection implements IFileAttribute
 
     /**
      * @inheritdoc
-     * @throws NotSupportedException
      */
     public function setValue($value)
     {
@@ -64,7 +57,18 @@ class FileMultiple extends FileCollection implements IFileAttribute
             }
             $this->data = [];
         } else {
-            throw new NotSupportedException;
+            foreach ($this->data as $item) {
+                if (!in_array($item, $value, true)) {
+                    $this->deleted[] = $item;
+                }
+            }
+            foreach ($value as &$item) {
+                if (is_string($item)) {
+                    $item = $this->createFile();
+                    $item->setValue($item);
+                }
+            }
+            $this->data = $value;
         }
     }
 
@@ -78,12 +82,7 @@ class FileMultiple extends FileCollection implements IFileAttribute
             if (isset($this->data[$offset])) {
                 $this->deleted[] = $this->data[$offset];
             }
-            $options = is_string($this->item) ? ['class' => $this->item] : $this->item;
-            $options = array_merge([
-                'fileUrl'  => $this->fileUrl,
-                'filePath' => $this->filePath,
-            ], $options);
-            $file = Yii::createObject($options);
+            $file = $this->createFile();
             $file->setValue($value);
             $value = $file;
         }
@@ -131,5 +130,18 @@ class FileMultiple extends FileCollection implements IFileAttribute
     protected function decode($value)
     {
         return $value !== null ? Json::decode($value) : [];
+    }
+
+    /**
+     * @return IFileAttribute
+     */
+    protected function createFile()
+    {
+        $options = is_string($this->item) ? ['class' => $this->item] : $this->item;
+        $options = array_merge([
+            'fileUrl'  => $this->fileUrl,
+            'filePath' => $this->filePath,
+        ], $options);
+        return Yii::createObject($options);
     }
 }

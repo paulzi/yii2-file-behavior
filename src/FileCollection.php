@@ -3,7 +3,7 @@ namespace paulzi\fileBehavior;
 
 use yii\base\Component;
 
-class FileCollection extends Component implements \ArrayAccess, \Iterator
+class FileCollection extends Component implements \ArrayAccess, \Iterator, \Countable
 {
     /**
      * @var string
@@ -95,5 +95,13 @@ class FileCollection extends Component implements \ArrayAccess, \Iterator
     public function valid()
     {
         return key($this->data) !== null;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function count()
+    {
+        return count($this->data);
     }
 }
