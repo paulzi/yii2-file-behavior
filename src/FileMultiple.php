@@ -75,6 +75,9 @@ class FileMultiple extends FileCollection implements IFileAttribute
     public function offsetSet($offset, $value)
     {
         if (is_string($value)) {
+            if (isset($this->data[$offset])) {
+                $this->deleted[] = $this->data[$offset];
+            }
             $options = is_string($this->item) ? ['class' => $this->item] : $this->item;
             $options = array_merge([
                 'fileUrl'  => $this->fileUrl,
