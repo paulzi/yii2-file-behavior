@@ -81,6 +81,7 @@ class Image extends File
     {
         foreach ($this->types as $type => $options) {
             $this->makeImage($type);
+            gc_collect_cycles();
         }
     }
 
