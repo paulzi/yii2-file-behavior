@@ -38,6 +38,7 @@ class FileBehavior extends Behavior
     public function events()
     {
         return [
+            BaseActiveRecord::EVENT_INIT          => 'afterFind',
             BaseActiveRecord::EVENT_AFTER_FIND    => 'afterFind',
             BaseActiveRecord::EVENT_BEFORE_INSERT => 'beforeSave',
             BaseActiveRecord::EVENT_BEFORE_UPDATE => 'beforeSave',

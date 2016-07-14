@@ -133,7 +133,7 @@ class File extends Component implements IFileAttribute
      * @throws InvalidConfigException
      * @throws \yii\base\Exception
      */
-    protected function setFile($file, $value, $copy)
+    protected function setFile($file, &$value, $copy)
     {
         if (!file_exists(Yii::getAlias($this->filePath))) {
             throw new InvalidConfigException(Yii::getAlias($this->filePath) . " directory not exists");
