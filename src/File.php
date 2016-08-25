@@ -6,6 +6,7 @@ use yii\base\Component;
 use yii\base\InvalidConfigException;
 use yii\base\InvalidValueException;
 use yii\helpers\FileHelper;
+use yii\web\UploadedFile;
 
 /**
  * @property string $url
@@ -13,6 +14,10 @@ use yii\helpers\FileHelper;
  */
 class File extends Component implements IFileAttribute
 {
+    const METHOD_MOVE        = 0;
+    const METHOD_COPY        = 1;
+    const METHOD_SET_CONTENT = 2;
+
     /**
      * @var string
      */
@@ -56,7 +61,17 @@ class File extends Component implements IFileAttribute
      */
     public function setValue($value, $copy = true)
     {
-        $this->newValue = [Yii::getAlias($value), $copy];
+        $value = is_string($value) ? Yii::getAlias($value) : $value;
+        $this->newValue = [$value, $copy ? self::METHOD_COPY : self::METHOD_MOVE, null, null];
+    }
+
+    /**
+     * @param string $data
+     * @param string $filename
+     */
+    public function setContent($data, $filename = null)
+    {
+        $this->newValue = [null, self::METHOD_SET_CONTENT, $data, $filename];
     }
 
     /**
@@ -85,15 +100,24 @@ class File extends Component implements IFileAttribute
         if (!$this->newValue) {
             return null;
         }
-        list($file, $copy) = $this->newValue;
+        list($file, $copy, $content, $filename) = $this->newValue;
 
         if ($file !== null) {
+            if ($file instanceof UploadedFile) {
+                $ext  = strtolower($file->extension);
+                $file = $file->tempName;
+            } else {
+                $ext  = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+            }
             if (!is_readable($file)) {
                 throw new InvalidValueException("{$file} is not readable");
             }
-            $ext     = strtolower(pathinfo($file, PATHINFO_EXTENSION));
             $value   = $this->buildPath($ext);
             $success = $this->setFile($file, $value, $copy);
+        } elseif ($content !== null) {
+            $ext     = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+            $value   = $this->buildPath($ext);
+            $success = $this->setFile($content, $value, $copy);
         } else {
             $value   = null;
             $success = true;
@@ -140,7 +164,11 @@ class File extends Component implements IFileAttribute
         }
         $path = Yii::getAlias($this->filePath . '/' . $value);
         @FileHelper::createDirectory(dirname($path), 0755, true);
-        return $copy ? copy($file, $path) : rename($file, $path);
+        if ($copy === self::METHOD_SET_CONTENT) {
+            return file_put_contents($path, $file) !== false;
+        } else {
+            return $copy ? copy($file, $path) : rename($file, $path);
+        }
     }
 
     /**

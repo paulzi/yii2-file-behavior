@@ -3,6 +3,7 @@ namespace paulzi\fileBehavior;
 
 use Yii;
 use yii\helpers\Json;
+use yii\web\UploadedFile;
 
 class FileMultiple extends FileCollection implements IFileAttribute
 {
@@ -62,10 +63,17 @@ class FileMultiple extends FileCollection implements IFileAttribute
                     $this->deleted[] = $item;
                 }
             }
-            foreach ($value as &$item) {
-                if (is_string($item)) {
-                    $item = $this->createFile();
-                    $item->setValue($item);
+            foreach ($value as $i => $item) {
+                if (is_string($item) || $item instanceof UploadedFile) {
+                    $value[$i] = $this->createFile();
+                    $value[$i]->setValue($item);
+                } elseif (is_array($item)) {
+                    if (isset($item['content'])) {
+                        $content  = $item['content'];
+                        $filename = isset($item['filename']) ? $item['filename'] : null;
+                        $value[$i] = $this->createFile();
+                        $value[$i]->setContent($content, $filename);
+                    }
                 }
             }
             $this->data = $value;
@@ -105,11 +113,11 @@ class FileMultiple extends FileCollection implements IFileAttribute
     {
         $result = true;
         foreach ($this->data as $file) {
-            $result = $file->save() !== false && $result;
+            $result = ($file->save() !== false) && $result;
         }
         foreach ($this->deleted as $file) {
             $file->setValue(null);
-            $result = $file->save() !== false && $result;
+            $result = ($file->save() !== false) && $result;
         }
         return $result;
     }
