@@ -6,14 +6,19 @@ use yii\base\Component;
 class FileCollection extends Component implements \ArrayAccess, \Iterator, \Countable
 {
     /**
-     * @var string
+     * @var string|callable
      */
     public $filePath;
 
     /**
-     * @var string
+     * @var string|callable
      */
     public $fileUrl;
+
+    /**
+     * @var string|callable
+     */
+    public $folder;
 
     /**
      * @var IFileAttribute[]

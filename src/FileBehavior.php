@@ -3,6 +3,7 @@ namespace paulzi\fileBehavior;
 
 use Yii;
 use yii\base\Behavior;
+use yii\base\InvalidConfigException;
 use yii\db\BaseActiveRecord;
 use yii\helpers\FileHelper;
 
@@ -86,9 +87,6 @@ class FileBehavior extends Behavior
             throw new InvalidConfigException(Yii::getAlias($this->path) . " directory not exists");
         }
 
-        $path = Yii::getAlias($this->path . ($this->folder ? '/' . $this->folder : null));
-        @FileHelper::createDirectory($path, 0755, true);
-
         foreach ($this->attributes as $attribute => $options) {
             $file = $this->owner->getAttribute($attribute);
             if ($file instanceof IFileAttribute) {
@@ -138,8 +136,11 @@ class FileBehavior extends Behavior
         foreach ($this->attributes as $attribute => $options) {
             $options = array_merge([
                 'class'    => File::className(),
-                'filePath' => $this->path . ($this->folder ? '/' . $this->folder : null),
-                'fileUrl'  => $this->url . ($this->folder ? '/' . $this->folder : null),
+                'filePath' => $this->path,
+                'fileUrl'  => $this->url,
+                'folder'   => is_string($this->folder) ? $this->folder : function () use ($attribute) {
+                    return call_user_func($this->folder, $this->owner, $attribute, $this);
+                },
             ], $options);
             $file = Yii::createObject($options);
             $file->initValue($this->owner->getAttribute($attribute));

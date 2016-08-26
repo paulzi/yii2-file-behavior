@@ -149,6 +149,7 @@ class FileMultiple extends FileCollection implements IFileAttribute
         $options = array_merge([
             'fileUrl'  => $this->fileUrl,
             'filePath' => $this->filePath,
+            'folder'   => $this->folder,
         ], $options);
         return Yii::createObject($options);
     }

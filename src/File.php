@@ -19,14 +19,19 @@ class File extends Component implements IFileAttribute
     const METHOD_SET_CONTENT = 2;
 
     /**
-     * @var string
+     * @var string|callable
      */
     public $filePath;
 
     /**
-     * @var string
+     * @var string|callable
      */
     public $fileUrl;
+
+    /**
+     * @var string|callable
+     */
+    public $folder;
 
     /**
      * @var string
@@ -79,7 +84,9 @@ class File extends Component implements IFileAttribute
      */
     public function getUrl()
     {
-        return Yii::getAlias($this->fileUrl . '/' . $this->_value);
+        $fileUrl = is_string($this->fileUrl) ? $this->fileUrl : call_user_func($this->fileUrl, $this);
+        $folder  = is_string($this->folder)  ? $this->folder  : call_user_func($this->folder,  $this);
+        return Yii::getAlias($fileUrl . ($folder ? '/' . $folder : null) . '/' . $this->_value);
     }
 
     /**
@@ -87,7 +94,9 @@ class File extends Component implements IFileAttribute
      */
     public function getPath()
     {
-        return Yii::getAlias($this->filePath . '/' . $this->_value);
+        $filePath = is_string($this->filePath) ? $this->filePath : call_user_func($this->filePath, $this);
+        $folder   = is_string($this->folder)  ? $this->folder  : call_user_func($this->folder,  $this);
+        return Yii::getAlias($filePath . ($folder ? '/' . $folder : null) . '/' . $this->_value);
     }
 
     /**
@@ -159,10 +168,13 @@ class File extends Component implements IFileAttribute
      */
     protected function setFile($file, &$value, $copy)
     {
-        if (!file_exists(Yii::getAlias($this->filePath))) {
-            throw new InvalidConfigException(Yii::getAlias($this->filePath) . " directory not exists");
+        $filePath = is_string($this->filePath) ? $this->filePath : call_user_func($this->filePath, $this);
+        $folder   = is_string($this->folder)   ? $this->folder   : call_user_func($this->folder,   $this);
+        if (!file_exists(Yii::getAlias($filePath))) {
+            throw new InvalidConfigException(Yii::getAlias($filePath) . " directory not exists");
         }
-        $path = Yii::getAlias($this->filePath . '/' . $value);
+        $filePath .= $folder ? '/' . $folder : null;
+        $path = Yii::getAlias($filePath . '/' . $value);
         @FileHelper::createDirectory(dirname($path), 0755, true);
         if ($copy === self::METHOD_SET_CONTENT) {
             return file_put_contents($path, $file) !== false;
