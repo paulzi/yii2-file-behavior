@@ -21,6 +21,11 @@ class FileCollection extends Component implements \ArrayAccess, \Iterator, \Coun
     public $folder;
 
     /**
+     * @var int|int[]
+     */
+    public $hashLength;
+
+    /**
      * @var IFileAttribute[]
      */
     protected $data = [];

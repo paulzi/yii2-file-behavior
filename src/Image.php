@@ -114,7 +114,9 @@ class Image extends File
             return null;
         }
         $pi     = pathinfo($value);
-        $result = $pi['dirname'] . '/' . substr(md5($pi['filename'] . $type . $this->salt), 0, 28);
+        $length = (array)$this->hashLength;
+        $length = end($length);
+        $result = $pi['dirname'] . '/' . substr(md5($pi['filename'] . $type . $this->salt), 0, $length);
         if ($pi['extension']) {
             $result .= '.' . $pi['extension'];
         }

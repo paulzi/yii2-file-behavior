@@ -34,6 +34,11 @@ class File extends Component implements IFileAttribute
     public $folder;
 
     /**
+     * @var int|int[]
+     */
+    public $hashLength = [2, 2, 28];
+
+    /**
      * @var string
      */
     private $_value;
@@ -151,10 +156,14 @@ class File extends Component implements IFileAttribute
     protected function buildPath($extension = null)
     {
         $result = [];
-        $hash   = bin2hex(Yii::$app->security->generateRandomKey(16));
-        $result[] = substr($hash, 0, 2);
-        $result[] = substr($hash, 2, 2);
-        $result[] = substr($hash, 4, 28);
+        $hashLength = (array)$this->hashLength;
+        $length = array_sum($hashLength);
+        $hash   = substr(bin2hex(Yii::$app->security->generateRandomKey((int)floor($length / 2))), 0, $length);
+        $pos    = 0;
+        foreach ($hashLength as $length) {
+            $result[] = substr($hash, $pos, $length);
+            $pos += $length;
+        }
         return implode('/', $result) . ($extension ? ".{$extension}" : null);
     }
 

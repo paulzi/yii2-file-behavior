@@ -146,11 +146,15 @@ class FileMultiple extends FileCollection implements IFileAttribute
     protected function createFile()
     {
         $options = is_string($this->item) ? ['class' => $this->item] : $this->item;
-        $options = array_merge([
-            'fileUrl'  => $this->fileUrl,
-            'filePath' => $this->filePath,
-            'folder'   => $this->folder,
-        ], $options);
+        $options = array_merge(
+            [
+                'fileUrl'  => $this->fileUrl,
+                'filePath' => $this->filePath,
+                'folder'   => $this->folder,
+            ],
+            $this->hashLength ? ['hashLength' => $this->hashLength] : [],
+            $options
+        );
         return Yii::createObject($options);
     }
 }
