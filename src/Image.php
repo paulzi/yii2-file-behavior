@@ -139,7 +139,7 @@ class Image extends File
             ], $options);
             $file = Yii::createObject($options);
             if ($type === 'original') {
-                $file->initValue($this->getPath());
+                $file->initValue($this->getValue());
             } else {
                 $file->initValue($this->buildImagePath($type));
             }
