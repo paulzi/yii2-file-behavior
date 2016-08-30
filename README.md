@@ -18,13 +18,13 @@ File store and image thumbs behavior for Yii2.
 Install via Composer:
 
 ```bash
-composer require paulzi/yii2-file-behavior
+composer require paulzi/yii2-file-behavior:~1.0.0
 ```
 
 or add
 
 ```bash
-"paulzi/yii2-file-behavior" : "^1.0"
+"paulzi/yii2-file-behavior" : "~1.0.0"
 ```
 
 to the `require` section of your `composer.json` file.

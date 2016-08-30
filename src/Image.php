@@ -69,7 +69,9 @@ class Image extends File
             if ($type === 'original') {
                 $path = $this->getPath();
             } else {
-                $path = Yii::getAlias($this->filePath . '/' . $this->buildImagePath($type));
+                $filePath = is_string($this->filePath) ? $this->filePath : call_user_func($this->filePath, $this);
+                $folder   = is_string($this->folder)  ? $this->folder  : call_user_func($this->folder,  $this);
+                $path     = Yii::getAlias($filePath . ($folder ? '/' . $folder : null) . '/' . $this->buildImagePath($type));
             }
             \yii\imagine\Image::thumbnail($this->getPath(), $width, $height, $mode)->save($path);
         }
@@ -135,6 +137,7 @@ class Image extends File
             $options = array_merge([
                 'fileUrl'  => $this->fileUrl,
                 'filePath' => $this->filePath,
+                'folder'   => $this->folder,
             ], $options);
             $file = Yii::createObject($options);
             if ($type === 'original') {
