@@ -4,7 +4,6 @@ namespace paulzi\fileBehavior;
 use Yii;
 use yii\base\InvalidParamException;
 use yii\helpers\ArrayHelper;
-use Imagine\Image\ManipulatorInterface;
 
 class Image extends File
 {
@@ -65,7 +64,6 @@ class Image extends File
             $options = $this->types[$type];
             $width   = ArrayHelper::remove($options, 0);
             $height  = ArrayHelper::remove($options, 1);
-            $mode    = !empty($options['mode']) ? $options['mode'] : ManipulatorInterface::THUMBNAIL_OUTBOUND;
             if ($type === 'original') {
                 $path = $this->getPath();
             } else {
@@ -73,7 +71,7 @@ class Image extends File
                 $folder   = is_string($this->folder)  ? $this->folder  : call_user_func($this->folder,  $this);
                 $path     = Yii::getAlias($filePath . ($folder ? '/' . $folder : null) . '/' . $this->buildImagePath($type));
             }
-            \yii\imagine\Image::thumbnail($this->getPath(), $width, $height, $mode)->save($path);
+            ImageHelper::resize($this->getPath(), $width, $height, $options)->save($path);
         }
     }
 
