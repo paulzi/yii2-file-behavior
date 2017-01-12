@@ -38,11 +38,13 @@ class ImageHelper extends BaseImage
 
         $img  = static::getImagine()->open(Yii::getAlias($filename));
         $size = $img->getSize();
-        $sx   = $width  ? $width  / $size->getWidth()  : false;
-        $sy   = $height ? $height / $size->getHeight() : false;
+        $w    = $size->getWidth();
+        $h    = $size->getHeight();
+        $sx   = $width  ? $width  / $w : false;
+        $sy   = $height ? $height / $h : false;
 
         if ($mode !== false && $sx && $sy) {
-            $sx = $sy = $sx + ($sy - $sx) * $mode;
+            $sx = $sy = min($sx, $sy) + abs($sy - $sx) * $mode;
         } else {
             $sx = $sx !== false ? $sx : $sy;
             $sy = $sy !== false ? $sy : $sx;
@@ -56,8 +58,8 @@ class ImageHelper extends BaseImage
             case $downscale && $sx < 1   && $sy < 1:
             case $upscale   && $sx > 1   && $sy > 1:
             case $noscale   && $sx === 1 && $sy === 1:
-                $w = (int)round($size->getWidth()  * $sx);
-                $h = (int)round($size->getHeight() * $sy);
+                $w = (int)round($w * $sx);
+                $h = (int)round($h * $sy);
                 if ($img instanceof \Imagine\Imagick\Image) {
                     static $map = array(
                         ImageInterface::FILTER_UNDEFINED => \Imagick::FILTER_UNDEFINED,
@@ -86,13 +88,14 @@ class ImageHelper extends BaseImage
         }
 
         if ($width && $height && ($crop || $add)) {
-            $size = $img->getSize();
-            $x = intval(($size->getWidth()  - $width)  * $alignX);
-            $y = intval(($size->getHeight() - $height) * $alignY);
+            $x = intval(($w - $width)  * $alignX);
+            $y = intval(($h - $height) * $alignY);
             if ($add && ($x < 0 || $y < 0)) {
-                $thumb = static::getImagine()->create(new Box(max($width, $size->getWidth()), max($height, $size->getHeight())), new Color('FFF', 100));
+                $thumb = static::getImagine()->create(new Box(max($width, $w), max($height, $h)), new Color('FFF', 100));
                 $thumb->paste($img, new Point(max(0, -$x), max(0, -$y)));
                 $img = $thumb;
+                $x = max($x, 0);
+                $y = max($y, 0);
             }
             if ($crop && ($x > 0 || $y > 0)) {
                 $img->crop(new Point(max(0, $x), max(0, $y)), new Box($width, $height));
