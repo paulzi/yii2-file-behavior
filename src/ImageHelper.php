@@ -6,7 +6,7 @@ use yii\base\InvalidParamException;
 use yii\imagine\BaseImage;
 use Imagine\Image\Box;
 use Imagine\Image\Point;
-use Imagine\Image\Color;
+use Imagine\Image\Palette\RGB;
 use Imagine\Image\ImageInterface;
 
 class ImageHelper extends BaseImage
@@ -91,7 +91,9 @@ class ImageHelper extends BaseImage
             $x = intval(($w - $width)  * $alignX);
             $y = intval(($h - $height) * $alignY);
             if ($add && ($x < 0 || $y < 0)) {
-                $thumb = static::getImagine()->create(new Box(max($width, $w), max($height, $h)), new Color('FFF', 100));
+                $palette = new RGB();
+                $color = $palette->color('#FFF', 100);
+                $thumb = static::getImagine()->create(new Box(max($width, $w), max($height, $h)), $color);
                 $thumb->paste($img, new Point(max(0, -$x), max(0, -$y)));
                 $img = $thumb;
                 $x = max($x, 0);
