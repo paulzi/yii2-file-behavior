@@ -68,11 +68,12 @@ class File extends Component implements IFileAttribute
     /**
      * @inheritdoc
      * @param bool $copy
+     * @param string|null $filename
      */
-    public function setValue($value, $copy = true)
+    public function setValue($value, $copy = true, $filename = null)
     {
         $value = is_string($value) ? Yii::getAlias($value) : $value;
-        $this->newValue = [$value, $copy ? self::METHOD_COPY : self::METHOD_MOVE, null, null];
+        $this->newValue = [$value, $copy ? self::METHOD_COPY : self::METHOD_MOVE, null, $filename];
     }
 
     /**
@@ -121,7 +122,7 @@ class File extends Component implements IFileAttribute
                 $ext  = strtolower($file->extension);
                 $file = $file->tempName;
             } else {
-                $ext  = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+                $ext  = strtolower(pathinfo($filename ?: $file, PATHINFO_EXTENSION));
             }
             if (!is_readable($file)) {
                 throw new InvalidValueException("{$file} is not readable");
