@@ -23,7 +23,7 @@ class ImageHelper extends BaseImage
      * @param array $options
      * @return ImageInterface
      */
-    public static function resize($filename, $width, $height, $options = [])
+    public static function resizeCustom($filename, $width, $height, $options = [])
     {
         $mode      = isset($options['mode'])      ? $options['mode']      : self::MODE_IN;
         $filter    = isset($options['filter'])    ? $options['filter']    : ImageInterface::FILTER_UNDEFINED;

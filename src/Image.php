@@ -71,7 +71,7 @@ class Image extends File
                 $folder   = is_string($this->folder)  ? $this->folder  : call_user_func($this->folder,  $this);
                 $path     = Yii::getAlias($filePath . ($folder ? '/' . $folder : null) . '/' . $this->buildImagePath($type));
             }
-            ImageHelper::resize($this->getPath(), $width, $height, $options)->save($path);
+            ImageHelper::resizeCustom($this->getPath(), $width, $height, $options)->save($path);
         }
     }
 
