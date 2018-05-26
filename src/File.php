@@ -50,6 +50,14 @@ class File extends Component implements IFileAttribute
 
 
     /**
+     * @return string
+     */
+    public function __toString()
+    {
+        return $this->getValue();
+    }
+
+    /**
      * @inheritdoc
      */
     public function getValue()
