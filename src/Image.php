@@ -71,8 +71,28 @@ class Image extends File
                 $folder   = is_string($this->folder)  ? $this->folder  : call_user_func($this->folder,  $this);
                 $path     = Yii::getAlias($filePath . ($folder ? '/' . $folder : null) . '/' . $this->buildImagePath($type));
             }
-            ImageHelper::resizeCustom($this->getPath(), $width, $height, $options)->save($path);
+            $ext = isset($options['ext']) ? $options['ext'] : null;
+            if ($ext === 'webp') {
+                $tmp  = sys_get_temp_dir() . '/' . uniqid('webp') . '.png';
+                ImageHelper::resizeCustom($this->getPath(), $width, $height, $options)->save($tmp);
+                $img = imagecreatefrompng($tmp);
+                imagewebp($img, $path, 80);
+                unlink($tmp);
+            } else {
+                ImageHelper::resizeCustom($this->getPath(), $width, $height, $options)->save($path);
+            }
         }
+    }
+
+    /**
+     * @param $filename
+     * @param $new
+     * @return string
+     */
+    public function replaceExtension($filename, $new)
+    {
+        $info = pathinfo($filename);
+        return ($info['dirname'] ? $info['dirname'] . DIRECTORY_SEPARATOR : '') . $info['filename'] . '.' . $new;
     }
 
     /**
@@ -120,6 +140,12 @@ class Image extends File
         if ($pi['extension']) {
             $result .= '.' . $pi['extension'];
         }
+        $options = !empty($this->types[$type]) ? $this->types[$type] : [];
+        $ext = isset($options['ext']) ? $options['ext'] : null;
+        if ($ext) {
+            $result = $this->replaceExtension($result, $ext);
+        }
+
         return $result;
     }
 
