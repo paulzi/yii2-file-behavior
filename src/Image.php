@@ -71,15 +71,20 @@ class Image extends File
                 $folder   = is_string($this->folder)  ? $this->folder  : call_user_func($this->folder,  $this);
                 $path     = Yii::getAlias($filePath . ($folder ? '/' . $folder : null) . '/' . $this->buildImagePath($type));
             }
+            $saveOptions = isset($options['saveOptions']) ? $options['saveOptions'] : [];
             $ext = isset($options['ext']) ? $options['ext'] : null;
-            if ($ext === 'webp') {
+            if ($ext === 'webp' && !empty($options['webpGd2'])) {
                 $tmp  = sys_get_temp_dir() . '/' . uniqid('webp') . '.png';
-                ImageHelper::resizeCustom($this->getPath(), $width, $height, $options)->save($tmp);
+                ImageHelper::resizeCustom($this->getPath(), $width, $height, $options)
+                    ->strip()
+                    ->save($tmp);
                 $img = imagecreatefrompng($tmp);
-                imagewebp($img, $path, 80);
+                imagewebp($img, $path, isset($saveOptions['webp_quality']) ? $saveOptions['webp_quality'] : 75);
                 unlink($tmp);
             } else {
-                ImageHelper::resizeCustom($this->getPath(), $width, $height, $options)->save($path);
+                ImageHelper::resizeCustom($this->getPath(), $width, $height, $options)
+                    ->strip()
+                    ->save($path, $saveOptions);
             }
         }
     }
