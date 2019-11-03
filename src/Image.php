@@ -5,6 +5,9 @@ use Yii;
 use yii\base\InvalidParamException;
 use yii\helpers\ArrayHelper;
 
+/**
+ * @property $typesCurrent
+ */
 class Image extends File
 {
     /**
@@ -13,9 +16,14 @@ class Image extends File
     public $file = 'paulzi\fileBehavior\File';
 
     /**
-     * @var array
+     * @var array|\Closure
      */
     public $types = [];
+
+    /**
+     * @var array
+     */
+    public $resizeExtensions = ['jpg', 'jpeg', 'gif', 'png', 'bmp', 'webp'];
 
     /**
      * @var string
@@ -34,7 +42,7 @@ class Image extends File
      */
     public function __get($name)
     {
-        if (isset($this->types[$name])) {
+        if (isset($this->typesCurrent[$name])) {
             return $this->getType($name);
         }
         return parent::__get($name);
@@ -46,7 +54,7 @@ class Image extends File
      */
     public function __isset($name)
     {
-        if (isset($this->types[$name])) {
+        if (isset($this->typesCurrent[$name])) {
             return true;
         }
         return parent::__isset($name);
@@ -57,11 +65,11 @@ class Image extends File
      */
     public function makeImage($type)
     {
-        if (!isset($this->types[$type])) {
+        if (!isset($this->typesCurrent[$type])) {
             throw new InvalidParamException;
         }
         if ($this->value !== null) {
-            $options = $this->types[$type];
+            $options = $this->typesCurrent[$type];
             $width   = ArrayHelper::remove($options, 0);
             $height  = ArrayHelper::remove($options, 1);
             if ($type === 'original') {
@@ -71,21 +79,24 @@ class Image extends File
                 $folder   = is_string($this->folder)  ? $this->folder  : call_user_func($this->folder,  $this);
                 $path     = Yii::getAlias($filePath . ($folder ? '/' . $folder : null) . '/' . $this->buildImagePath($type));
             }
-            $saveOptions = isset($options['saveOptions']) ? $options['saveOptions'] : [];
-            $ext = isset($options['ext']) ? $options['ext'] : null;
-            if ($ext === 'webp' && !empty($options['webpGd2'])) {
-                $tmp  = sys_get_temp_dir() . '/' . uniqid('webp') . '.png';
-                ImageHelper::resizeCustom($this->getPath(), $width, $height, $options)
-                    ->strip()
-                    ->save($tmp);
-                $img = imagecreatefrompng($tmp);
-                imagepalettetotruecolor($img);
-                imagewebp($img, $path, isset($saveOptions['webp_quality']) ? $saveOptions['webp_quality'] : 75);
-                unlink($tmp);
-            } else {
-                ImageHelper::resizeCustom($this->getPath(), $width, $height, $options)
-                    ->strip()
-                    ->save($path, $saveOptions);
+            $origExt = pathinfo($this->getPath(), PATHINFO_EXTENSION);
+            if (in_array($origExt, $this->resizeExtensions)) {
+                $saveOptions = isset($options['saveOptions']) ? $options['saveOptions'] : [];
+                $ext = isset($options['ext']) ? $options['ext'] : null;
+                if ($ext === 'webp' && !empty($options['webpGd2'])) {
+                    $tmp  = sys_get_temp_dir() . '/' . uniqid('webp') . '.png';
+                    ImageHelper::resizeCustom($this->getPath(), $width, $height, $options)
+                        ->strip()
+                        ->save($tmp);
+                    $img = imagecreatefrompng($tmp);
+                    imagepalettetotruecolor($img);
+                    imagewebp($img, $path, isset($saveOptions['webp_quality']) ? $saveOptions['webp_quality'] : 75);
+                    unlink($tmp);
+                } else {
+                    ImageHelper::resizeCustom($this->getPath(), $width, $height, $options)
+                        ->strip()
+                        ->save($path, $saveOptions);
+                }
             }
         }
     }
@@ -105,7 +116,7 @@ class Image extends File
      */
     public function makeImages()
     {
-        foreach ($this->types as $type => $options) {
+        foreach ($this->typesCurrent as $type => $options) {
             $this->makeImage($type);
             gc_collect_cycles();
         }
@@ -116,7 +127,7 @@ class Image extends File
      */
     public function save()
     {
-        foreach ($this->types as $type => $options) {
+        foreach ($this->typesCurrent as $type => $options) {
             $this->getType($type);
         }
         if (parent::save() === true) {
@@ -146,7 +157,7 @@ class Image extends File
         if ($pi['extension']) {
             $result .= '.' . $pi['extension'];
         }
-        $options = !empty($this->types[$type]) ? $this->types[$type] : [];
+        $options = !empty($this->typesCurrent[$type]) ? $this->typesCurrent[$type] : [];
         $ext = isset($options['ext']) ? $options['ext'] : null;
         if ($ext) {
             $result = $this->replaceExtension($result, $ext);
@@ -178,5 +189,13 @@ class Image extends File
             $this->data[$type] = $file;
         }
         return $this->data[$type];
+    }
+
+    /**
+     * @return array
+     */
+    protected function getTypesCurrent()
+    {
+        return is_array($this->types) ? $this->types : call_user_func($this->types);
     }
 }
