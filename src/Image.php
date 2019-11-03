@@ -79,6 +79,7 @@ class Image extends File
                     ->strip()
                     ->save($tmp);
                 $img = imagecreatefrompng($tmp);
+                imagepalettetotruecolor($img);
                 imagewebp($img, $path, isset($saveOptions['webp_quality']) ? $saveOptions['webp_quality'] : 75);
                 unlink($tmp);
             } else {
